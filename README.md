@@ -30,6 +30,7 @@
 
 ### 1. Разработка пользовательского интерфейса
 ![index1](https://user-images.githubusercontent.com/98755619/213801188-a359bfe3-952e-4ed0-a152-dea6d9da98ec.png)
+![index2](https://user-images.githubusercontent.com/98755619/213807038-3e6078a4-d3d4-438d-a2d3-f340d0e97f44.png)
 ![заявка на курьера](https://user-images.githubusercontent.com/98755619/213801228-4eca6df1-bde8-455c-b878-3a8dbaa69670.png)
 ![продукты](https://user-images.githubusercontent.com/98755619/213801251-a56bcd92-8d0a-4741-bc10-d8de4b2b99c6.png)
 ![корзина](https://user-images.githubusercontent.com/98755619/213801271-c8b1c1ac-f33c-48f9-b5e9-cc7e10832d68.png)
