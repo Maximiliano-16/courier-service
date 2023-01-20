@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}
+    Биржа заказов
+{% endblock %}
+{% block content %}
+    {% if request.user.is_courier %}
+        <h2>Биржа заказов:</h2>
+        <ul class="list-group">
+            {% for order in object_list %}
+                {% if order.status == 'WS' %}
+                    <form method="post" action="{% url 'orders:accept_order' order.id %}">
+                        {% csrf_token %}
+                        <li class="list-group-item">Номер: {{ order.id }}&nbsp; Время: {{ order.pub_date|date:"H:i" }}&nbsp;
+                            Адрес: {{ order.address }}</li>
+                        <button type="submit" class="btn btn-primary">Принять заказ</button>
+                    </form>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <h2>К этой странице есть доступ только у курьеров!</h2>
+    {% endif %}
+{% endblock %}
