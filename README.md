@@ -58,7 +58,11 @@
 нажал на кнопку "Принять заказ", тогда у него в личном кабинете отобразится данный заказ, а также статус, который он
 может изменять. После доставки заказ помечается как выполненный, а курьер может браться за новый.
 
-### 3. Описание алгоритмов
+### 3. Описание структуры базы данных
+
+![БД](https://user-images.githubusercontent.com/98755619/213806083-25628793-9ee0-4597-a8bf-84e842209b1a.png)
+
+### 4. Описание алгоритмов
 
 ### Алгоритм оформления доставки клиентом
 ![1 drawio (1)](https://user-images.githubusercontent.com/98755619/213801454-ac2981ff-77a0-4823-832b-7718dd357b26.png)
@@ -69,3 +73,113 @@
 ### Алгоритм принятия заказа курьером
 ![3 drawio](https://user-images.githubusercontent.com/98755619/213801603-418a9894-86eb-489d-8453-798e9da0ed43.png)
 
+### 4. Значимые части кода
+
+#### Модель Продуктов
+```
+class Product(models.Model):
+    category = models.ForeignKey(
+        Category,
+        related_name='products',
+        on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=200, db_index=True)
+    slug = models.SlugField(max_length=200, db_index=True)
+    image = models.ImageField(upload_to='products/', blank=True)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField()
+    available = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Продукт'
+        verbose_name_plural = 'Продукты'
+        ordering = ('name',)
+        index_together = (('id', 'slug'),)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('orders:product_detail',
+                       args=[self.id, self.slug])
+```
+
+#### Модель заказа
+
+```
+class Order(models.Model):
+    WAITING_SUBMIT = 'WS'
+    GOING_TO = 'GT'
+    ON_THE_WAY = 'OTW'
+    DELIVERED = 'DV'
+    STATUS_CHOICES = (
+        (WAITING_SUBMIT, 'Waiting submit'),
+        (GOING_TO, 'Going to'),
+        (ON_THE_WAY, 'On the way'),
+        (DELIVERED, 'delivered'),
+    )
+    address = models.CharField(
+        'Адрес получателя',
+        max_length=400
+    )
+    client = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Заказчик',
+        related_name='all_orders'
+    )
+    pub_date = models.DateTimeField(
+        'Время публикации',
+        auto_now_add=True
+    )
+    status = models.CharField(
+        'Статус заказа',
+        max_length=40,
+        choices=STATUS_CHOICES,
+        default=WAITING_SUBMIT
+    )
+    comment = models.TextField(
+        'Обращение к курьеру',
+        max_length=2000,
+        blank=True
+    )
+    paid = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+
+    def __str__(self):
+        return f'Order {self.id} of {self.client.username}'
+
+
+```
+
+#### Вью функция заказа
+
+```
+def new_order(request):
+    cart = Cart(request)
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.client = request.user
+            order.paid = True
+            order.save()
+            for item in cart:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item['product'],
+                    price=item['price'],
+                    quantity=item['quantity']
+
+                )
+            cart.clear()
+            return render(request, 'orders/sucess_order.html')
+    form = OrderForm()
+    return render(request, "orders/new_order.html", {'form': form})
+```
